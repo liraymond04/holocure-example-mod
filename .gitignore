@@ -1,0 +1,10 @@
+.cache/
+
+.secrets
+
+# Docker builds
+build/
+
+# MVSC builds
+x64/
+x86/
