@@ -2,7 +2,7 @@
 
 ## [v1.0.1] - 2023-11-18
 
-Move to example template for Aurie plugin.
+Move to example template for Aurie module and YYTK v3.
 
 ## [v1.0.0] - 2023-11-16
 
