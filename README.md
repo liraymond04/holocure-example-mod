@@ -1,6 +1,6 @@
 # HoloCure Example Mod
 
-A mod template for HoloCure using [YYToolkit](https://github.com/Archie-osu/YYToolkit)
+A mod template for HoloCure using [YYToolkit](https://github.com/AurieFramework/YYToolkit) (note: this template is for YYTK v3 which uses [Aurie](https://github.com/AurieFramework/Aurie), for the YYTK v2 template use the [legacy](https://github.com/liraymond04/holocure-example-mod/tree/legacy) branch)
 
 This GitHub repository is configured with GitHub actions to automatically build a mod DLL and upload it to releases when a commit is made to the `main` branch
 
@@ -72,7 +72,7 @@ DLL will be outputted to `x64/Release/Src.dll`
 #### (Optional) Fix compile_commands.json
 If you are using clangd for Intellisense, you will need to edit the generated `compile_commands.json` to replace the MSVC compiler with the mingw-w64 cross compiler
 
-For Arch Linux, you need to install the mingw-w64-gcc package
+For Arch Linux, you need to install the `mingw-w64-gcc` package
 
 ```bash
 sudo pacman -S mingw-w64-gcc
