@@ -1,5 +1,5 @@
 ARG DLL_NAME=example-mod
-ARG VERSION=1.0.0
+ARG VERSION=1.0.1
 
 # WARNING: do not edit below unless you know what you are doing
 ################################################################################

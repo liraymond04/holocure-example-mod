@@ -41,6 +41,6 @@ source "$secrets_file"
 sed -i "s|$old_compiler|$new_compiler|g" "$json_file"
 
 # Fix the compiler flags
-sed -i "s|-std:c++17|-std=gnu++17|g" "$json_file"
+sed -i "s|-std:c++latest|-std=gnu++latest|g" "$json_file"
 sed -i "s|-MD /GL /Oi /Gy /permissive- /sdl /W3 /Zi /EHsc /FoCMakeFiles|-o CMakeFiles|g" "$json_file"
 sed -i "s|/FdCMakeFiles/Src.dir/ /FS -c|-c|g" "$json_file"
