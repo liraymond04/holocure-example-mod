@@ -113,4 +113,10 @@ Run the `update_compile_commands.sh` script and pass in the `.secrets` and optio
 ./scripts/update_compile_commands.sh -f ./secrets -j build/compile_commands.json
 ```
 
+## Building with Visual Studio
 
+Visual Studio solution files are generated using CMake from the command line, so when installing CMake you should **check the option to `Add CMake to the system PATH`** for either all users or the current users
+
+When CMake are installed and added to the system PATH and Visual Studio is also installed, run the `setup_vs.bat` script to generate the Visual Studio solution files
+
+To open the project in Visual Studio, open the generated `main.sln` file

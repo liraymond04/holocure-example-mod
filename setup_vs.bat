@@ -16,7 +16,6 @@ if not defined project_version (
     exit /b 1
 )
 
-SETLOCAL ENABLEDELAYEDEXPANSION
 REM Loop through each Visual Studio version
 for %%v in (%vs_versions%) do (
     set "vs_version=Visual Studio %%v"
