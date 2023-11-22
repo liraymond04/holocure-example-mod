@@ -8,6 +8,15 @@ The mod DLL name and version are defined inside the `manifest.json` under the `n
 
 Releases published by GitHub Actions are tagged with the `version`, and the changelog of the release is defined inside of [CHANGELOG.md](CHANGELOG.md)
 
+- [HoloCure Example Mod](#holocure-example-mod)
+    * [Building with Docker](#building-with-docker)
+        - [(Optional) Change Docker build directory](#optional-change-docker-build-directory)
+   * [Building with CMake](#building-with-cmake)
+        + [Linux](#linux)
+            - [(Optional) Change CMake build directory](#optional-change-cmake-build-directory)
+            - [(Optional) Fix compile_commands.json](#optional-fix-compile_commandsjson)
+    * [Building with Visual Studio](#building-with-visual-studio)
+
 ## Building with Docker
 
 Building a mod DLL is simplified with [Docker](https://github.com/microsoft/docker), and it only requires that you have Docker and Docker's Buildkit installed
