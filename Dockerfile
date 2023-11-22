@@ -1,6 +1,3 @@
-ARG DLL_NAME=example-mod
-ARG VERSION=1.0.1
-
 # WARNING: do not edit below unless you know what you are doing
 ################################################################################
 
@@ -62,7 +59,7 @@ RUN CC=cl CXX=cl cmake .. \
     -DPROJECT_VERSION=$VERSION \
     && make
 
-RUN mv ../x64/Release/Src.dll ../x64/Release/$DLL_NAME-v$VERSION.dll
+RUN mv ../x64/Release/$DLL_NAME.dll ../x64/Release/$DLL_NAME-v$VERSION.dll
 
 
 # Copy output DLL to host machine

@@ -4,9 +4,9 @@ A mod template for HoloCure using [YYToolkit](https://github.com/AurieFramework/
 
 This GitHub repository is configured with GitHub actions to automatically build a mod DLL and upload it to releases when a commit is made to the `main` branch
 
-The mod DLL name and version are defined inside the `Dockerfile` using `DLL_NAME` and `VERSION` at the top of the file (WARNING: do not edit the rest of the Dockerfile unless you know what you are doing)
+The mod DLL name and version are defined inside the `manifest.json` under the `name` and `version` entries.
 
-Releases published by GitHub Actions are tagged with the `VERSION`, and the changelog of the release is defined inside of [CHANGELOG.md](CHANGELOG.md)
+Releases published by GitHub Actions are tagged with the `version`, and the changelog of the release is defined inside of [CHANGELOG.md](CHANGELOG.md)
 
 ## Building with Docker
 
@@ -27,7 +27,15 @@ Start the build with Docker by running `build.sh`
 ./build.sh
 ```
 
-DLL will be outputted to `build/example-mod-v1.0.0.dll`
+DLL will be outputted to `build/example-mod-v1.0.2.dll`
+
+#### (Optional) Change Docker build directory
+
+The `./build.sh` script defaults to the `build` directory, but you can optionally pass in a different output directory
+
+```bash
+./build.sh -b <new-directory>
+```
 
 ## Building with CMake
 
@@ -62,12 +70,23 @@ wine64 wineboot # Run a process to start up all background wine processes
 
 Generate build files and compile
 ```bash
-mkdir build && cd build
-CC=cl CXX=cl cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_SYSTEM_NAME=Windows
+# Generate CMake build files
+./setup_cmake.sh
+# Navigate to build directory
+cd build
+# Compile with make
 make
 ```
 
-DLL will be outputted to `x64/Release/Src.dll`
+DLL will be outputted to `x64/Release/example-mod.dll`
+
+#### (Optional) Change CMake build directory
+
+The `./setup_cmake.sh` script defaults to the `build` directory, but you can optionally pass in a different output directory
+
+```bash
+./setup_cmake.sh -b <new-directory>
+```
 
 #### (Optional) Fix compile_commands.json
 If you are using clangd for Intellisense, you will need to edit the generated `compile_commands.json` to replace the MSVC compiler with the mingw-w64 cross compiler
@@ -91,7 +110,7 @@ new_compiler="/usr/bin/x86_64-w64-mingw32-g++"
 Run the `update_compile_commands.sh` script and pass in the `.secrets` and optionally the `compile_commands.json` (if the `compile_commands.json` is not passed in, it is searched for in the directory the script is run in) 
 
 ```bash
-./update_compile_commands.sh -f ./secrets -j build/compile_commands.json
+./scripts/update_compile_commands.sh -f ./secrets -j build/compile_commands.json
 ```
 
 

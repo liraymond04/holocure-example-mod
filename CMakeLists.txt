@@ -101,7 +101,13 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 ################################################################################
 # Sub-projects
 ################################################################################
-set(PROJECT_NAME Src)
+if(NOT DEFINED PROJ_NAME)
+    set(PROJECT_NAME Src)
+else()
+    set(PROJECT_NAME ${PROJ_NAME})
+endif()
+
+message("Project name: ${PROJECT_NAME}")
 
 ################################################################################
 # Source groups
