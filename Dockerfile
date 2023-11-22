@@ -56,6 +56,7 @@ RUN wineserver -p && \
 RUN CC=cl CXX=cl cmake .. \
     -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_SYSTEM_NAME=Windows \
+    -DPROJ_NAME=$DLL_NAME \
     -DPROJECT_VERSION=$VERSION \
     && make
 
