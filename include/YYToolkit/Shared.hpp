@@ -19,6 +19,10 @@
 #define UTEXT(x) ((const unsigned char*)(x))
 #endif // UTEXT
 
+#ifndef NULL_INDEX
+#define NULL_INDEX INT_MIN
+#endif
+
 namespace YYTK
 {
 	enum CmColor : uint8_t
@@ -91,6 +95,7 @@ namespace YYTK
 	struct YYRunnerInterface;
 	class YYTKInterface;
 	struct RValue;
+	struct RVariableRoutine;
 
 	struct YYGMLException
 	{
@@ -140,6 +145,10 @@ namespace YYTK
 		RValue();
 
 		RValue(
+			IN bool Value
+		);
+
+		RValue(
 			IN double Value
 		);
 
@@ -157,6 +166,14 @@ namespace YYTK
 
 		RValue(
 			IN std::string_view Value,
+			IN YYTKInterface* Interface
+		);
+
+		bool AsBool() const;
+
+		double AsReal() const;
+
+		std::string_view AsString(
 			IN YYTKInterface* Interface
 		);
 	};
@@ -508,6 +525,35 @@ namespace YYTK
 		virtual const YYRunnerInterface& GetRunnerInterface() = 0;
 
 		virtual void InvalidateAllCaches() = 0;
+
+		virtual Aurie::AurieStatus GetScriptData(
+			IN int Index,
+			OUT CScript*& Script
+		) = 0;
+
+		virtual Aurie::AurieStatus GetBuiltinVariableIndex(
+			IN std::string_view Name,
+			OUT size_t& Index
+		) = 0;
+
+		virtual Aurie::AurieStatus GetBuiltinVariableInformation(
+			IN size_t Index,
+			OUT RVariableRoutine*& VariableInformation
+		) = 0;
+
+		virtual Aurie::AurieStatus GetBuiltin(
+			IN std::string_view Name,
+			IN CInstance* TargetInstance,
+			OPTIONAL IN int ArrayIndex,
+			OUT RValue& Value
+		) = 0;
+
+		virtual Aurie::AurieStatus SetBuiltin(
+			IN std::string_view Name,
+			IN CInstance* TargetInstance,
+			OPTIONAL IN int ArrayIndex,
+			IN RValue& Value
+		) = 0;
 	};
 }
 
