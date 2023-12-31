@@ -1,5 +1,9 @@
 # Changelog
 
+## [v1.0.4] - 2023-12-30
+
+Update YYTK header files to 3.1.0
+
 ## [v1.0.3] - 2023-12-25
 
 Update YYTK header file
@@ -18,6 +22,7 @@ Move to example template for Aurie module and YYTK v3.
 
 Initial release.
 
+[v1.0.4]: https://github.com/liraymond04/holocure-example-mod/releases/tag/v1.0.4
 [v1.0.3]: https://github.com/liraymond04/holocure-example-mod/releases/tag/v1.0.3
 [v1.0.2]: https://github.com/liraymond04/holocure-example-mod/releases/tag/v1.0.2
 [v1.0.1]: https://github.com/liraymond04/holocure-example-mod/releases/tag/v1.0.1
