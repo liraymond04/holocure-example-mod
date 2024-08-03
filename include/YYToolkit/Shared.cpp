@@ -11,10 +11,13 @@ static YYTKInterface* GetYYTKInterface()
 	// If we error, we return nullptr.
 	if (!module_interface)
 	{
-		ObGetInterface(
+		AurieStatus last_status = ObGetInterface(
 			"YYTK_Main",
 			reinterpret_cast<AurieInterfaceBase*&>(module_interface)
 		);
+
+		if (!AurieSuccess(last_status))
+			printf("[%s : %d] FATAL: Failed to get YYTK Interface (%s)!\n", __FILE__, __LINE__, AurieStatusToString(last_status));
 	}
 
 	return module_interface;
@@ -121,6 +124,15 @@ YYTK::RValue::RValue(
 	*this = std::string_view(Value);
 }
 
+#if YYTK_CPP_VERSION > 202002L
+YYTK::RValue::RValue(
+	IN const char8_t* Value
+)
+{
+	*this = std::u8string_view(Value);
+}
+#endif // YYTK_CPP_VERSION
+
 RValue::RValue(
 	IN std::string_view Value
 )
@@ -138,6 +150,31 @@ RValue::RValue(
 		*this
 	);
 }
+
+#if YYTK_CPP_VERSION > 202002L
+YYTK::RValue::RValue(
+	IN std::u8string_view Value
+)
+{
+	*this = std::string(Value.cbegin(), Value.cend());
+}
+#endif // YYTK_CPP_VERSION
+
+YYTK::RValue::RValue(
+	IN const std::string& Value
+)
+{
+	*this = std::string_view(Value);
+}
+
+#if YYTK_CPP_VERSION > 202002L
+YYTK::RValue::RValue(
+	IN const std::u8string& Value
+)
+{
+	*this = std::u8string_view(Value);
+}
+#endif // YYTK_CPP_VERSION
 
 RValue::RValue(
 	IN std::string_view Value,
@@ -176,8 +213,12 @@ bool RValue::AsBool() const
 	case VALUE_INT64:
 		return this->m_i64 > 0;
 	default:
-		// Bool argument has incorrect type!
-		assert(false);
+		GetYYTKInterface()->PrintError(
+			__FILE__,
+			__LINE__,
+			"Trying to get boolean value of invalid kind '%u'!",
+			this->m_Kind
+		);
 	}
 
 	return false;
@@ -196,8 +237,12 @@ double RValue::AsReal() const
 	case VALUE_INT64:
 		return static_cast<double>(this->m_i64);
 	default:
-		// Real argument has incorrect type!
-		assert(false);
+		GetYYTKInterface()->PrintError(
+			__FILE__,
+			__LINE__,
+			"Trying to get real value of invalid kind '%u'!",
+			this->m_Kind
+		);
 	}
 
 	return 0.0;
@@ -232,18 +277,28 @@ std::string_view RValue::AsString(
 
 RValue& RValue::operator[](
 	IN size_t Index
-	)
+)
 {
 	if (!GetYYTKInterface())
 		return *this;
 
 	RValue* result = nullptr;
-	if (!AurieSuccess(GetYYTKInterface()->GetArrayEntry(
+	AurieStatus last_status = GetYYTKInterface()->GetArrayEntry(
 		*this,
 		Index,
 		result
-	)))
+	);
+
+	if (!AurieSuccess(last_status))
 	{
+		GetYYTKInterface()->PrintError(
+			__FILE__,
+			__LINE__,
+			"Trying to index invalid array index '%lld' (%s)!",
+			Index,
+			AurieStatusToString(last_status)
+		);
+
 		return *this;
 	}
 
@@ -252,7 +307,7 @@ RValue& RValue::operator[](
 
 RValue& RValue::operator[](
 	IN std::string_view Element
-	)
+)
 {
 	if (!GetYYTKInterface())
 		return *this;
@@ -267,6 +322,14 @@ RValue& RValue::operator[](
 	// Prevents access violations, null references are undefined behavior in the C++ standard
 	if (!AurieSuccess(last_status) || !instance_member)
 	{
+		GetYYTKInterface()->PrintError(
+			__FILE__,
+			__LINE__,
+			"Trying to access inaccessible instance member '%s' (%s)!",
+			Element.data(),
+			AurieStatusToString(last_status)
+		);
+
 		return *this;
 	}
 
@@ -287,16 +350,147 @@ RValue& RValue::at(
 	return this->operator[](Element);
 }
 
-RValue& CInstance::operator[](
-	IN std::string_view Element
-	)
+RValue* YYTK::RValue::data()
 {
-	return RValue(this).at(Element);
+	if (!GetYYTKInterface())
+		return this;
+	
+	RValue* data_base_address = this;
+
+	// The "data_base_address" variable will remain a thisptr unless the function succeeds,
+	// so we don't need to check the return value, as we will always return a valid pointer
+	GetYYTKInterface()->GetArrayEntry(
+		*this,
+		0,
+		data_base_address
+	);
+
+	return data_base_address;
 }
 
-RValue& YYTK::CInstance::at(
+size_t YYTK::RValue::length()
+{
+	// Non-array RValues always only have 1 element
+	if (this->m_Kind != VALUE_ARRAY)
+		return 1;
+
+	YYTKInterface* module_interface = GetYYTKInterface();
+	if (!module_interface)
+		return 0;
+
+	// We don't have to check return value, since if the function failed,
+	// the value in current_size is preserved.
+	size_t current_size = 0;
+	module_interface->GetArraySize(
+		*this,
+		current_size
+	);
+
+	return current_size;
+}
+
+#if YYTK_DEFINE_INTERNAL
+CInstanceInternal& YYTK::CInstance::GetMembers()
+{
+	YYTKInterface* module_interface = GetYYTKInterface();
+
+	// SequenceInstanceOnly is used in most new games that v3 is targetting
+	if (!module_interface)
+		return this->SequenceInstanceOnly.Members;
+	
+	RValue self_id_builtin;
+	module_interface->GetBuiltin(
+		"id",
+		this,
+		NULL_INDEX,
+		self_id_builtin
+	);
+
+	int32_t self_id = static_cast<int32_t>(self_id_builtin.AsReal());
+	
+	if (this->MembersOnly.Members.m_ID == self_id)
+		return this->MembersOnly.Members;
+
+	if (this->SequenceInstanceOnly.Members.m_ID == self_id)
+		return this->SequenceInstanceOnly.Members;
+
+	if (this->WithSkeletonMask.Members.m_ID == self_id)
+		return this->WithSkeletonMask.Members;
+
+	module_interface->PrintError(
+		__FILE__,
+		__LINE__, 
+		"Failed to determine CInstance member offset! Report this to GitHub and include the game name!"
+	);
+
+	return this->SequenceInstanceOnly.Members;
+}
+#endif // YYTK_DEFINE_INTERNAL
+
+RValue& CInstance::operator[](
 	IN std::string_view Element
 )
 {
 	return RValue(this).at(Element);
 }
+
+RValue& CInstance::at(
+	IN std::string_view Element
+)
+{
+	return RValue(this).at(Element);
+}
+
+#if YYTK_DEFINE_INTERNAL
+bool YYObjectBase::Add(
+	IN const char* Name,
+	IN const RValue& Value, 
+	IN int Flags
+)
+{
+	// Get the module interface
+	YYTKInterface* module_interface = GetYYTKInterface();
+	if (!module_interface)
+		return false;
+
+	// Check if we have the needed function
+	if (!module_interface->GetRunnerInterface().COPY_RValue)
+		return false;
+
+	// Get the slot ID - this calls FindAlloc_Slot_From_Name
+	int32_t variable_hash = 0;
+	if (!AurieSuccess(module_interface->GetVariableSlot(this, Name, variable_hash)))
+		return false;
+
+	// Get the RValue reference
+	RValue& rv = this->InternalGetYYVarRef(variable_hash);
+	
+	// Copy the RValue from our stuff into the struct
+	module_interface->GetRunnerInterface().COPY_RValue(&rv, &Value);
+	rv.m_Flags = Flags; // Make the behavior consistent with the actual func
+
+	return true;
+}
+
+bool YYObjectBase::IsExtensible()
+{
+	return this->m_Flags & 1;
+}
+
+RValue* YYObjectBase::FindOrAllocValue(
+	IN const char* Name
+)
+{
+	// Get the interface
+	YYTKInterface* module_interface = GetYYTKInterface();
+	if (!module_interface)
+		return nullptr;
+
+	// Get the slot ID - this calls FindAlloc_Slot_From_Name
+	int32_t variable_hash = 0;
+	if (!AurieSuccess(module_interface->GetVariableSlot(this, Name, variable_hash)))
+		return nullptr;
+
+	return &this->InternalGetYYVarRef(variable_hash);
+}
+#endif // YYTK_DEFINE_INTERNAL
